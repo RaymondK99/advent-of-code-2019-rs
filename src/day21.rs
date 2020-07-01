@@ -5,14 +5,16 @@ fn run(intcode_program_string: &str, ascii_program_string: &str) -> String {
     intcode_program.run_for_output();
     intcode_program.input_string(ascii_program_string);
 
-    if let Some(value) = intcode_program
-        .run_for_output()
-        .iter()
-        .find(|&&value| value > 255)
-    {
+    let program_output = intcode_program.run_for_output();
+    if let Some(value) = program_output.iter().find(|&&value| value > 255) {
         value.to_string()
     } else {
-        panic!("No non-ASCII value found");
+        let output_bytes: Vec<u8> = program_output.iter().map(|&value| value as u8).collect();
+        let output_string = std::str::from_utf8(&output_bytes).unwrap();
+        panic!(
+            "No non-ASCII value found - showing last moments:\n{}",
+            output_string
+        );
     }
 }
 
@@ -44,9 +46,9 @@ pub fn part2(input_string: &str) -> String {
     ascii_program.push_str("AND E T\n");
     // ... OR ground at H, so we can go to either E or jump to H:
     ascii_program.push_str("OR H T\n");
-    // ... then jump:
+    // ... then jump ...
     ascii_program.push_str("AND T J\n");
-    // ... if there there is ground at D ...
+    // ... if there there is ground at D:
     ascii_program.push_str("AND D J\n");
 
     ascii_program.push_str("RUN\n");
